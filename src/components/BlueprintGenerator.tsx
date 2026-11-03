@@ -11,12 +11,16 @@ import {
   RefreshCw,
   Plus,
   Trash2,
-  Edit3,
+  Edit2,
+  Copy,
   FileSpreadsheet,
+  Check,
+  PlusCircle,
 } from 'lucide-react';
 import { useAssessment } from '../context/AssessmentContext';
 import { exportAssessmentToExcel, printAssessmentDocument } from '../utils/exportUtils';
 import { BlueprintItem } from '../types';
+import { BlueprintEditorModal } from './BlueprintEditorModal';
 
 export const BlueprintGenerator: React.FC = () => {
   const {
@@ -26,8 +30,11 @@ export const BlueprintGenerator: React.FC = () => {
     setExamConfig,
     selectedTpIds,
     blueprint,
-    setBlueprint,
     generateBlueprint,
+    updateBlueprintItem,
+    deleteBlueprintItem,
+    addBlueprintItem,
+    duplicateBlueprintItem,
     isLoading,
     loadingMessage,
     setActiveTab,
@@ -36,6 +43,8 @@ export const BlueprintGenerator: React.FC = () => {
   } = useAssessment();
 
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [activeEditItem, setActiveEditItem] = useState<BlueprintItem | null>(null);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
   // Quick state for question distribution
   const [totalQuestions, setTotalQuestions] = useState(examConfig.totalQuestions || 10);
@@ -74,6 +83,20 @@ export const BlueprintGenerator: React.FC = () => {
     });
   };
 
+  const handleSaveItem = (updated: Partial<BlueprintItem>) => {
+    if (activeEditItem) {
+      updateBlueprintItem(activeEditItem.id, updated);
+      setSaveSuccessMsg(`Butir No. ${activeEditItem.number} berhasil diperbarui!`);
+      setTimeout(() => setSaveSuccessMsg(null), 3000);
+    }
+  };
+
+  const handleAddNewItem = () => {
+    addBlueprintItem();
+    setSaveSuccessMsg('Butir kisi-kisi baru berhasil ditambahkan.');
+    setTimeout(() => setSaveSuccessMsg(null), 3000);
+  };
+
   const totalWeight = blueprint.reduce((acc, curr) => acc + (Number(curr.weight) || 1), 0);
 
   return (
@@ -84,23 +107,35 @@ export const BlueprintGenerator: React.FC = () => {
           <div className="flex items-center gap-2">
             <Grid3X3 className="w-6 h-6 text-blue-600" />
             <h2 className="text-lg font-bold text-slate-900">
-              Generator Kisi-Kisi Soal Asesmen
+              Generator & Editor Kisi-Kisi Soal Asesmen
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Format resmi Kemendikbudristek: menghubungkan TP, Materi Esensial, Indikator Soal, Level Kognitif, dan Bobot.
+            Format resmi Kemendikbudristek: Anda dapat menyusun otomatis dengan AI, mengedit tiap butir, menambah, menduplikasi, atau menghapus indikator soal.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Button Tambah Butir Manual */}
+          <button
+            onClick={handleAddNewItem}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-300 transition-all active:scale-95"
+            title="Tambah Butir Kisi-Kisi Baru secara Manual"
+          >
+            <PlusCircle className="w-4 h-4 text-emerald-600" />
+            <span>Tambah Butir</span>
+          </button>
+
+          {/* Button Config */}
           <button
             onClick={() => setShowConfigModal(!showConfigModal)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-all"
           >
             <Sliders className="w-4 h-4 text-slate-600" />
-            Pengaturan Distribusi Soal
+            Distribusi Soal
           </button>
 
+          {/* Button Generate AI */}
           <button
             onClick={generateBlueprint}
             disabled={isLoading || selectedTpIds.length === 0}
@@ -114,6 +149,7 @@ export const BlueprintGenerator: React.FC = () => {
             <span>{blueprint.length > 0 ? 'Generate Ulang Kisi-Kisi' : 'Generate Kisi-Kisi (AI)'}</span>
           </button>
 
+          {/* Export to Excel */}
           <button
             onClick={handleExcelExport}
             disabled={blueprint.length === 0}
@@ -125,6 +161,14 @@ export const BlueprintGenerator: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Save Success Alert */}
+      {saveSuccessMsg && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 flex items-center gap-2 animate-in fade-in duration-200">
+          <Check className="w-4 h-4 text-emerald-600" />
+          <span>{saveSuccessMsg}</span>
+        </div>
+      )}
 
       {/* Loading message */}
       {isLoading && (
@@ -229,9 +273,16 @@ export const BlueprintGenerator: React.FC = () => {
           <p className="text-sm font-semibold text-slate-700">
             Kisi-kisi soal belum dibuat
           </p>
-          <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-            Klik tombol <strong>"Generate Kisi-Kisi (AI)"</strong> di atas untuk memetakan distribusi soal berdasarkan Tujuan Pembelajaran yang Anda pilih.
+          <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto mb-4">
+            Klik tombol <strong>"Generate Kisi-Kisi (AI)"</strong> di atas untuk memetakan otomatis, atau gunakan <strong>"Tambah Butir"</strong> untuk menginput kisi-kisi mandiri.
           </p>
+          <button
+            onClick={handleAddNewItem}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm"
+          >
+            <PlusCircle className="w-4 h-4" />
+            Tambah Butir Kisi-Kisi Manual
+          </button>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -260,17 +311,18 @@ export const BlueprintGenerator: React.FC = () => {
               <thead>
                 <tr className="bg-slate-900 text-white font-semibold">
                   <th className="py-3 px-3 border-b border-slate-800 text-center w-12">No</th>
-                  <th className="py-3 px-3.5 border-b border-slate-800 w-56">Tujuan Pembelajaran (TP)</th>
-                  <th className="py-3 px-3.5 border-b border-slate-800 w-44">Materi Pokok</th>
+                  <th className="py-3 px-3.5 border-b border-slate-800 w-52">Tujuan Pembelajaran (TP)</th>
+                  <th className="py-3 px-3.5 border-b border-slate-800 w-40">Materi Pokok</th>
                   <th className="py-3 px-3.5 border-b border-slate-800">Indikator Soal Operasional</th>
-                  <th className="py-3 px-3 border-b border-slate-800 text-center w-28">Kognitif</th>
-                  <th className="py-3 px-3 border-b border-slate-800 text-center w-36">Bentuk Soal</th>
-                  <th className="py-3 px-3 border-b border-slate-800 text-center w-16">Bobot</th>
+                  <th className="py-3 px-2 border-b border-slate-800 text-center w-24">Kognitif</th>
+                  <th className="py-3 px-2 border-b border-slate-800 text-center w-32">Bentuk Soal</th>
+                  <th className="py-3 px-2 border-b border-slate-800 text-center w-14">Bobot</th>
+                  <th className="py-3 px-3 border-b border-slate-800 text-center w-28">Fasilitas Edit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {blueprint.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
                     <td className="py-3 px-3 text-center font-bold text-slate-700 align-top">
                       {item.number}
                     </td>
@@ -293,7 +345,7 @@ export const BlueprintGenerator: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-3 text-center align-top">
+                    <td className="py-3 px-2 text-center align-top">
                       <span
                         className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
                           item.cognitiveCategory === 'HOTS'
@@ -306,13 +358,39 @@ export const BlueprintGenerator: React.FC = () => {
                         {item.bloomLevel} ({item.cognitiveCategory})
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-center align-top font-medium text-slate-700">
+                    <td className="py-3 px-2 text-center align-top font-medium text-slate-700">
                       <span className="bg-slate-100 text-slate-800 px-2 py-1 rounded text-[11px] inline-block">
                         {item.questionType}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-center align-top font-bold text-blue-900">
+                    <td className="py-3 px-2 text-center align-top font-bold text-blue-900">
                       {item.weight}
+                    </td>
+                    {/* FASILITAS EDIT & AKSI */}
+                    <td className="py-3 px-3 text-center align-top">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => setActiveEditItem(item)}
+                          className="p-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 rounded-lg transition-colors border border-blue-200"
+                          title="Sunting / Edit Butir Kisi-Kisi"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => duplicateBlueprintItem(item.id)}
+                          className="p-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 rounded-lg transition-colors border border-emerald-200"
+                          title="Salin / Duplikasi Butir"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => deleteBlueprintItem(item.id)}
+                          className="p-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 rounded-lg transition-colors border border-rose-200"
+                          title="Hapus Butir"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -320,11 +398,20 @@ export const BlueprintGenerator: React.FC = () => {
             </table>
           </div>
 
-          {/* Next Steps CTA */}
+          {/* Table Bottom Action Toolbar */}
           <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <span className="text-xs text-slate-500">
-              Kisi-kisi siap diproses menjadi naskah soal lengkap HOTS dan AKM.
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAddNewItem}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 shadow-2xs transition-all"
+              >
+                <Plus className="w-3.5 h-3.5 text-blue-600" />
+                Tambah Butir ke Tabel
+              </button>
+              <span className="text-xs text-slate-500">
+                Total <strong>{blueprint.length}</strong> butir kisi-kisi ({totalWeight} poin).
+              </span>
+            </div>
 
             <div className="flex items-center gap-2">
               <button
@@ -347,6 +434,17 @@ export const BlueprintGenerator: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Blueprint Editor Modal */}
+      {activeEditItem && (
+        <BlueprintEditorModal
+          item={activeEditItem}
+          availableTps={tps}
+          isOpen={true}
+          onClose={() => setActiveEditItem(null)}
+          onSave={handleSaveItem}
+        />
       )}
     </div>
   );

@@ -10,6 +10,7 @@ import {
   BarChart3,
   Award,
   ChevronDown,
+  Edit2,
 } from 'lucide-react';
 import { useAssessment } from '../context/AssessmentContext';
 import {
@@ -27,6 +28,7 @@ export const DocumentExporter: React.FC = () => {
     blueprint,
     questions,
     validation,
+    setActiveTab,
   } = useAssessment();
 
   const [activeDocSubTab, setActiveDocSubTab] = useState<'kisi' | 'soal' | 'kunci' | 'rubrik' | 'distribusi'>('kisi');
@@ -237,9 +239,21 @@ export const DocumentExporter: React.FC = () => {
         {/* 1. KISI-KISI SUBTAB */}
         {activeDocSubTab === 'kisi' && (
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-center text-slate-900 border-b pb-2">
-              KISI-KISI PENULISAN SOAL ASESMEN
-            </h2>
+            <div className="flex items-center justify-between border-b pb-2">
+              <div className="w-24 print:hidden" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-center text-slate-900 flex-1">
+                KISI-KISI PENULISAN SOAL ASESMEN
+              </h2>
+              <div className="print:hidden">
+                <button
+                  onClick={() => setActiveTab('kisi-kisi')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg border border-blue-200 transition-colors"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  Sunting Kisi-Kisi
+                </button>
+              </div>
+            </div>
 
             {blueprint.length === 0 ? (
               <p className="text-center py-8 text-xs text-slate-400">

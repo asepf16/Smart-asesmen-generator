@@ -51,6 +51,10 @@ interface AssessmentContextType {
   generateBlueprint: () => Promise<void>;
   generateQuestionsByMode: (mode: 'hots' | 'akm' | 'formatif' | 'sumatif' | 'from-blueprint') => Promise<void>;
   runQualityValidation: () => Promise<void>;
+  updateBlueprintItem: (id: string, updated: Partial<BlueprintItem>) => void;
+  deleteBlueprintItem: (id: string) => void;
+  addBlueprintItem: (item?: Partial<BlueprintItem>) => void;
+  duplicateBlueprintItem: (id: string) => void;
   updateQuestion: (index: number, updated: Partial<QuestionItem>) => void;
   deleteQuestion: (index: number) => void;
   duplicateQuestion: (index: number) => void;
@@ -586,6 +590,56 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
+  const updateBlueprintItem = (id: string, updated: Partial<BlueprintItem>) => {
+    setBlueprint((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
+    );
+  };
+
+  const deleteBlueprintItem = (id: string) => {
+    setBlueprint((prev) => {
+      const filtered = prev.filter((item) => item.id !== id);
+      return filtered.map((item, idx) => ({ ...item, number: idx + 1 }));
+    });
+  };
+
+  const addBlueprintItem = (item?: Partial<BlueprintItem>) => {
+    setBlueprint((prev) => {
+      const num = prev.length + 1;
+      const defaultTp = tps[0];
+      const newItem: BlueprintItem = {
+        id: 'bp-' + Date.now(),
+        number: num,
+        tpCode: item?.tpCode || defaultTp?.code || `TP.${num}`,
+        tpText: item?.tpText || defaultTp?.tpText || 'Menguasai konsep pembelajaran secara terukur',
+        material: item?.material || defaultTp?.material || 'Materi Pokok',
+        indicator: item?.indicator || 'Disajikan stimulus kontekstual, peserta didik dapat menganalisis dan menalar solusi dengan tepat.',
+        bloomLevel: item?.bloomLevel || 'C4',
+        cognitiveCategory: item?.cognitiveCategory || 'HOTS',
+        competence: item?.competence || defaultTp?.competence || 'Menganalisis dan mengevaluasi solusi',
+        questionType: item?.questionType || 'Pilihan Ganda',
+        weight: item?.weight || 2,
+        stimulusType: item?.stimulusType || 'Narasi Kasus Kontekstual',
+        ...item,
+      };
+      return [...prev, newItem];
+    });
+  };
+
+  const duplicateBlueprintItem = (id: string) => {
+    setBlueprint((prev) => {
+      const target = prev.find((item) => item.id === id);
+      if (!target) return prev;
+      const duplicated: BlueprintItem = {
+        ...target,
+        id: 'bp-' + Date.now() + '-dup',
+        number: prev.length + 1,
+        indicator: `(Salinan) ${target.indicator}`,
+      };
+      return [...prev, duplicated];
+    });
+  };
+
   const updateQuestion = (index: number, updated: Partial<QuestionItem>) => {
     setQuestions((prev) => {
       const copy = [...prev];
@@ -691,6 +745,10 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         generateBlueprint,
         generateQuestionsByMode,
         runQualityValidation,
+        updateBlueprintItem,
+        deleteBlueprintItem,
+        addBlueprintItem,
+        duplicateBlueprintItem,
         updateQuestion,
         deleteQuestion,
         duplicateQuestion,
