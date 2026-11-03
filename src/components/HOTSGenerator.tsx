@@ -14,9 +14,11 @@ import {
 } from 'lucide-react';
 import { useAssessment } from '../context/AssessmentContext';
 import { QuestionEditorModal } from './QuestionEditorModal';
+import { ClearConfirmationModal } from './ClearConfirmationModal';
 import { QuestionItem } from '../types';
 
 export const HOTSGenerator: React.FC = () => {
+  const [showClearModal, setShowClearModal] = useState(false);
   const {
     blueprint,
     questions,
@@ -51,6 +53,17 @@ export const HOTSGenerator: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {questions.length > 0 && (
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-all active:scale-95"
+              title="Kosongkan naskah soal HOTS saat ini"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+              <span>Kosongkan Soal</span>
+            </button>
+          )}
+
           <button
             onClick={() => generateQuestionsByMode('hots')}
             disabled={isLoading}
@@ -294,6 +307,13 @@ export const HOTSGenerator: React.FC = () => {
           onSave={(updated) => updateQuestion(activeModalIdx, updated)}
         />
       )}
+
+      {/* Clear Confirmation Modal */}
+      <ClearConfirmationModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        defaultScope="questions"
+      />
     </div>
   );
 };

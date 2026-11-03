@@ -8,12 +8,15 @@ import {
   User,
   Sliders,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 import { useAssessment } from '../context/AssessmentContext';
 import { SUBJECT_PRESETS } from '../data/presets';
 import { exportAssessmentToDocx, printAssessmentDocument } from '../utils/exportUtils';
+import { ClearConfirmationModal } from './ClearConfirmationModal';
 
 export const Navbar: React.FC = () => {
+  const [isClearModalOpen, setIsClearModalOpen] = React.useState(false);
   const {
     schoolInfo,
     teacherInfo,
@@ -123,6 +126,18 @@ export const Navbar: React.FC = () => {
             <Printer className="w-4 h-4" />
           </button>
 
+          {/* Reset / Kosongkan Hasil Button */}
+          {(blueprint.length > 0 || questions.length > 0) && (
+            <button
+              onClick={() => setIsClearModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-800/60 rounded-lg text-xs font-semibold transition-all"
+              title="Kosongkan kisi-kisi atau naskah soal sebelumnya"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              <span className="hidden sm:inline">Kosongkan Hasil</span>
+            </button>
+          )}
+
           <button
             onClick={() => setActiveTab('pengaturan')}
             className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
@@ -132,6 +147,12 @@ export const Navbar: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <ClearConfirmationModal
+        isOpen={isClearModalOpen}
+        onClose={() => setIsClearModalOpen(false)}
+        defaultScope="draft"
+      />
     </header>
   );
 };

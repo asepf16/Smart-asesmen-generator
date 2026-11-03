@@ -13,11 +13,14 @@ import {
   HelpCircle,
   FileSpreadsheet,
   Download,
+  Trash2,
 } from 'lucide-react';
 import { useAssessment } from '../context/AssessmentContext';
 import { SUBJECT_PRESETS } from '../data/presets';
+import { ClearConfirmationModal } from './ClearConfirmationModal';
 
 export const Dashboard: React.FC = () => {
+  const [showClearModal, setShowClearModal] = React.useState(false);
   const {
     schoolInfo,
     teacherInfo,
@@ -165,6 +168,16 @@ export const Dashboard: React.FC = () => {
               <Download className="w-4 h-4" />
               Ekspor Word & PDF
             </button>
+            {(blueprint.length > 0 || questions.length > 0) && (
+              <button
+                onClick={() => setShowClearModal(true)}
+                className="inline-flex items-center gap-2 bg-red-950/60 hover:bg-red-900/80 text-red-200 border border-red-700/60 font-semibold text-xs px-4 py-2.5 rounded-lg transition-all"
+                title="Kosongkan hasil kisi-kisi atau naskah soal sebelumnya"
+              >
+                <Trash2 className="w-4 h-4 text-red-400" />
+                Kosongkan Hasil Sebelumnya
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -344,6 +357,13 @@ export const Dashboard: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Clear Confirmation Modal */}
+      <ClearConfirmationModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        defaultScope="draft"
+      />
     </div>
   );
 };

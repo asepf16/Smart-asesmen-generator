@@ -21,8 +21,10 @@ import { useAssessment } from '../context/AssessmentContext';
 import { exportAssessmentToExcel, printAssessmentDocument } from '../utils/exportUtils';
 import { BlueprintItem } from '../types';
 import { BlueprintEditorModal } from './BlueprintEditorModal';
+import { ClearConfirmationModal } from './ClearConfirmationModal';
 
 export const BlueprintGenerator: React.FC = () => {
+  const [showClearModal, setShowClearModal] = useState(false);
   const {
     schoolInfo,
     teacherInfo,
@@ -125,6 +127,18 @@ export const BlueprintGenerator: React.FC = () => {
             <PlusCircle className="w-4 h-4 text-emerald-600" />
             <span>Tambah Butir</span>
           </button>
+
+          {/* Button Kosongkan Kisi-Kisi */}
+          {blueprint.length > 0 && (
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-lg border border-red-200 transition-all active:scale-95"
+              title="Kosongkan seluruh baris kisi-kisi soal yang telah disusun"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+              <span>Kosongkan Kisi-Kisi</span>
+            </button>
+          )}
 
           {/* Button Config */}
           <button
@@ -451,6 +465,13 @@ export const BlueprintGenerator: React.FC = () => {
           onSave={handleSaveItem}
         />
       )}
+
+      {/* Clear Confirmation Modal */}
+      <ClearConfirmationModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        defaultScope="blueprint"
+      />
     </div>
   );
 };

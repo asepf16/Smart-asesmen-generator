@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Sparkle,
   Sparkles,
@@ -9,10 +9,13 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
+  Trash2,
 } from 'lucide-react';
 import { useAssessment } from '../context/AssessmentContext';
+import { ClearConfirmationModal } from './ClearConfirmationModal';
 
 export const FormativeAssessment: React.FC = () => {
+  const [showClearModal, setShowClearModal] = useState(false);
   const {
     tps,
     selectedTpIds,
@@ -41,18 +44,31 @@ export const FormativeAssessment: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => generateQuestionsByMode('formatif')}
-          disabled={isLoading || selectedTpIds.length === 0}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
-        >
-          {isLoading ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
-          ) : (
-            <Sparkles className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          {questions.length > 0 && (
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-all active:scale-95"
+              title="Kosongkan naskah soal formatif saat ini"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+              <span>Kosongkan Soal</span>
+            </button>
           )}
-          <span>Generate Asesmen Formatif (AI)</span>
-        </button>
+
+          <button
+            onClick={() => generateQuestionsByMode('formatif')}
+            disabled={isLoading || selectedTpIds.length === 0}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            <span>Generate Asesmen Formatif (AI)</span>
+          </button>
+        </div>
       </div>
 
       {/* Loading message */}
@@ -172,6 +188,13 @@ export const FormativeAssessment: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Clear Confirmation Modal */}
+      <ClearConfirmationModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        defaultScope="questions"
+      />
     </div>
   );
 };

@@ -18,8 +18,10 @@ import {
 } from 'lucide-react';
 import { useAssessment } from '../context/AssessmentContext';
 import { QuestionEditorModal } from './QuestionEditorModal';
+import { ClearConfirmationModal } from './ClearConfirmationModal';
 
 export const CombinedHotsAkmGenerator: React.FC = () => {
+  const [showClearModal, setShowClearModal] = useState(false);
   const {
     blueprint,
     questions,
@@ -71,18 +73,31 @@ export const CombinedHotsAkmGenerator: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={handleGenerateCombined}
-          disabled={isLoading}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-emerald-600 hover:opacity-95 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 shrink-0"
-        >
-          {isLoading ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
-          ) : (
-            <Sparkles className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          {questions.length > 0 && (
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-all active:scale-95 shrink-0"
+              title="Kosongkan naskah butir soal terpadu saat ini"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+              <span>Kosongkan Soal</span>
+            </button>
           )}
-          <span>{questions.length > 0 ? 'Generate Ulang Terpadu' : 'Generate Paket Terpadu HOTS & AKM (AI)'}</span>
-        </button>
+
+          <button
+            onClick={handleGenerateCombined}
+            disabled={isLoading}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-emerald-600 hover:opacity-95 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 shrink-0"
+          >
+            {isLoading ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            <span>{questions.length > 0 ? 'Generate Ulang Terpadu' : 'Generate Paket Terpadu HOTS & AKM (AI)'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Loading state */}
@@ -428,6 +443,13 @@ export const CombinedHotsAkmGenerator: React.FC = () => {
           onSave={(updated) => updateQuestion(activeModalIdx, updated)}
         />
       )}
+
+      {/* Clear Confirmation Modal */}
+      <ClearConfirmationModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        defaultScope="questions"
+      />
     </div>
   );
 };

@@ -58,6 +58,10 @@ interface AssessmentContextType {
   updateQuestion: (index: number, updated: Partial<QuestionItem>) => void;
   deleteQuestion: (index: number) => void;
   duplicateQuestion: (index: number) => void;
+  clearBlueprint: () => void;
+  clearQuestions: () => void;
+  clearAssessmentDraft: () => void;
+  clearAllAnalysisAndAssessment: () => void;
   saveCurrentPackage: (title?: string) => void;
   loadSavedPackage: (pkg: AssessmentPackage) => void;
   deleteSavedPackage: (id: string) => void;
@@ -708,6 +712,38 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setSavedPackages((prev) => prev.filter((p) => p.id !== id));
   };
 
+  const clearBlueprint = () => {
+    setBlueprint([]);
+    localStorage.removeItem('sag_blueprint');
+  };
+
+  const clearQuestions = () => {
+    setQuestions([]);
+    setValidation(null);
+    localStorage.removeItem('sag_questions');
+    localStorage.removeItem('sag_validation');
+  };
+
+  const clearAssessmentDraft = () => {
+    setBlueprint([]);
+    setQuestions([]);
+    setValidation(null);
+    localStorage.removeItem('sag_blueprint');
+    localStorage.removeItem('sag_questions');
+    localStorage.removeItem('sag_validation');
+  };
+
+  const clearAllAnalysisAndAssessment = () => {
+    setTpAnalyses([]);
+    setBlueprint([]);
+    setQuestions([]);
+    setValidation(null);
+    localStorage.removeItem('sag_tp_analyses');
+    localStorage.removeItem('sag_blueprint');
+    localStorage.removeItem('sag_questions');
+    localStorage.removeItem('sag_validation');
+  };
+
   return (
     <AssessmentContext.Provider
       value={{
@@ -754,6 +790,10 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updateQuestion,
         deleteQuestion,
         duplicateQuestion,
+        clearBlueprint,
+        clearQuestions,
+        clearAssessmentDraft,
+        clearAllAnalysisAndAssessment,
         saveCurrentPackage,
         loadSavedPackage,
         deleteSavedPackage,

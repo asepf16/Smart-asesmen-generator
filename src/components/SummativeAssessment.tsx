@@ -9,10 +9,13 @@ import {
   RefreshCw,
   ArrowRight,
   FileSpreadsheet,
+  Trash2,
 } from 'lucide-react';
 import { useAssessment } from '../context/AssessmentContext';
+import { ClearConfirmationModal } from './ClearConfirmationModal';
 
 export const SummativeAssessment: React.FC = () => {
+  const [showClearModal, setShowClearModal] = useState(false);
   const {
     examConfig,
     setExamConfig,
@@ -65,18 +68,31 @@ export const SummativeAssessment: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleGenerateSummative}
-          disabled={isLoading || selectedTpIds.length === 0}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
-        >
-          {isLoading ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
-          ) : (
-            <Sparkles className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          {(blueprint.length > 0 || questions.length > 0) && (
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-all active:scale-95"
+              title="Kosongkan kisi-kisi atau naskah soal sumatif saat ini"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+              <span>Kosongkan Hasil</span>
+            </button>
           )}
-          <span>Konstruksi Asesmen Sumatif (AI)</span>
-        </button>
+
+          <button
+            onClick={handleGenerateSummative}
+            disabled={isLoading || selectedTpIds.length === 0}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            <span>Konstruksi Asesmen Sumatif (AI)</span>
+          </button>
+        </div>
       </div>
 
       {/* Loading state */}
@@ -271,6 +287,13 @@ export const SummativeAssessment: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Clear Confirmation Modal */}
+      <ClearConfirmationModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        defaultScope="draft"
+      />
     </div>
   );
 };
