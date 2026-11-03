@@ -28,6 +28,100 @@ function getGenAI() {
   });
 }
 
+// Sleep helper for backoff
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Checks if an error is transient (e.g., 503 UNAVAILABLE, 429 RESOURCE_EXHAUSTED, high demand)
+function isTransientError(error: any): boolean {
+  if (!error) return false;
+  const errorStr = (
+    typeof error === 'string'
+      ? error
+      : (error.message || '') + ' ' + JSON.stringify(error)
+  ).toLowerCase();
+  return (
+    errorStr.includes('503') ||
+    errorStr.includes('unavailable') ||
+    errorStr.includes('high demand') ||
+    errorStr.includes('overloaded') ||
+    errorStr.includes('429') ||
+    errorStr.includes('resource_exhausted') ||
+    errorStr.includes('rate limit') ||
+    errorStr.includes('econnreset') ||
+    errorStr.includes('etimedout')
+  );
+}
+
+// Cleans markdown code block wraps before parsing JSON
+function cleanJsonOutput(text: string): string {
+  if (!text) return '';
+  let cleaned = text.trim();
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.replace(/^```json\s*/i, '').replace(/\s*```$/, '');
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+  }
+  return cleaned.trim();
+}
+
+interface GenerateOptions {
+  model?: string;
+  fallbackModel?: string;
+  responseMimeType?: string;
+  maxRetries?: number;
+}
+
+// Resilient AI generation with retry and automatic fallback during spikes
+async function generateWithRetryAndFallback(
+  ai: GoogleGenAI,
+  prompt: string,
+  options: GenerateOptions = {}
+): Promise<string> {
+  const primaryModel = options.model || 'gemini-3.8-flash';
+  const fallbackModel = options.fallbackModel || 'gemini-3.1-flash-lite';
+  const maxRetries = options.maxRetries ?? 3;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: primaryModel,
+        contents: prompt,
+        config: {
+          responseMimeType: options.responseMimeType || 'application/json',
+        },
+      });
+      return cleanJsonOutput(response.text || '');
+    } catch (err: any) {
+      console.warn(`[Gemini API] Percobaan ${attempt}/${maxRetries} (${primaryModel}) gagal:`, err.message || err);
+      if (attempt < maxRetries && isTransientError(err)) {
+        const delay = 1200 * attempt + Math.floor(Math.random() * 400);
+        await sleep(delay);
+        continue;
+      }
+      if (isTransientError(err) && primaryModel !== fallbackModel) {
+        console.warn(`[Gemini API] Model ${primaryModel} sibuk (503/High Demand). Mengalihkan otomatis ke model alternatif ${fallbackModel}...`);
+        break; // proceed to fallback
+      }
+      throw err;
+    }
+  }
+
+  // Fallback to gemini-3.1-flash-lite
+  try {
+    const response = await ai.models.generateContent({
+      model: fallbackModel,
+      contents: prompt,
+      config: {
+        responseMimeType: options.responseMimeType || 'application/json',
+      },
+    });
+    return cleanJsonOutput(response.text || '');
+  } catch (fallbackErr: any) {
+    console.error(`[Gemini API] Model cadangan ${fallbackModel} juga gagal:`, fallbackErr);
+    throw fallbackErr;
+  }
+}
+
 // 1. Endpoint: Analisis TP / ATP
 app.post('/api/ai/analyze-tp', async (req, res) => {
   try {
@@ -81,19 +175,16 @@ Kembalikan respon HANYA dalam format JSON dengan struktur array objek:
 ]
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const parsed = JSON.parse(response.text || '[]');
+    const rawText = await generateWithRetryAndFallback(ai, prompt);
+    const parsed = JSON.parse(rawText || '[]');
     res.json({ success: true, data: parsed });
   } catch (error: any) {
     console.error('Error analyzing TP:', error);
-    res.status(500).json({ error: error.message || 'Gagal menganalisis Tujuan Pembelajaran.' });
+    let message = error.message || 'Gagal menganalisis Tujuan Pembelajaran.';
+    if (isTransientError(error)) {
+      message = 'Layanan AI sedang mengalami lonjakan antrean sementara (503). Sistem telah mencoba mengulang otomatis.';
+    }
+    res.status(500).json({ error: message });
   }
 });
 
@@ -141,19 +232,16 @@ Kembalikan respon HANYA dalam format JSON dengan struktur:
 }
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const parsed = JSON.parse(response.text || '{}');
+    const rawText = await generateWithRetryAndFallback(ai, prompt);
+    const parsed = JSON.parse(rawText || '{}');
     res.json({ success: true, data: parsed });
   } catch (error: any) {
     console.error('Error parsing ATP:', error);
-    res.status(500).json({ error: error.message || 'Gagal membaca dan mengekstrak dokumen ATP.' });
+    let message = error.message || 'Gagal membaca dan mengekstrak dokumen ATP.';
+    if (isTransientError(error)) {
+      message = 'Layanan AI sedang mengalami lonjakan antrean sementara (503). Sistem telah mencoba mengulang otomatis.';
+    }
+    res.status(500).json({ error: message });
   }
 });
 
@@ -221,19 +309,16 @@ Kembalikan respon HANYA dalam format JSON dengan format:
 }
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const parsed = JSON.parse(response.text || '{}');
+    const rawText = await generateWithRetryAndFallback(ai, prompt);
+    const parsed = JSON.parse(rawText || '{}');
     res.json({ success: true, data: parsed });
   } catch (error: any) {
     console.error('Error generating kisi-kisi:', error);
-    res.status(500).json({ error: error.message || 'Gagal menyusun kisi-kisi soal.' });
+    let message = error.message || 'Gagal menyusun kisi-kisi soal.';
+    if (isTransientError(error)) {
+      message = 'Layanan AI sedang mengalami lonjakan antrean sementara (503). Sistem telah mencoba mengulang otomatis.';
+    }
+    res.status(500).json({ error: message });
   }
 });
 
@@ -361,19 +446,16 @@ Kembalikan respon HANYA dalam format JSON dengan struktur array objek:
 ]
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const parsed = JSON.parse(response.text || '[]');
+    const rawText = await generateWithRetryAndFallback(ai, prompt);
+    const parsed = JSON.parse(rawText || '[]');
     res.json({ success: true, data: parsed });
   } catch (error: any) {
     console.error('Error generating questions:', error);
-    res.status(500).json({ error: error.message || 'Gagal menghasilkan instrumen soal.' });
+    let message = error.message || 'Gagal menghasilkan instrumen soal.';
+    if (isTransientError(error)) {
+      message = 'Layanan AI sedang mengalami lonjakan antrean sementara (503). Sistem telah mencoba mengulang otomatis.';
+    }
+    res.status(500).json({ error: message });
   }
 });
 
@@ -433,19 +515,16 @@ Kembalikan respon HANYA dalam format JSON dengan format:
 }
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const parsed = JSON.parse(response.text || '{}');
+    const rawText = await generateWithRetryAndFallback(ai, prompt);
+    const parsed = JSON.parse(rawText || '{}');
     res.json({ success: true, data: parsed });
   } catch (error: any) {
     console.error('Error validating questions:', error);
-    res.status(500).json({ error: error.message || 'Gagal memvalidasi butir soal.' });
+    let message = error.message || 'Gagal memvalidasi butir soal.';
+    if (isTransientError(error)) {
+      message = 'Layanan AI sedang mengalami lonjakan antrean sementara (503). Sistem telah mencoba mengulang otomatis.';
+    }
+    res.status(500).json({ error: message });
   }
 });
 
