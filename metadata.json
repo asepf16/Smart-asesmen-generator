@@ -1,0 +1,6 @@
+{
+  "name": "Smart Assessment Generator - HOTS & AKM",
+  "description": "Solusi Cerdas Guru dalam Menyusun Asesmen Berkualitas, Terukur, dan Berbasis Tujuan Pembelajaran (Kurikulum Merdeka).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
