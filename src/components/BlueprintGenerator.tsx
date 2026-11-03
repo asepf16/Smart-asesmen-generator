@@ -413,25 +413,30 @@ export const BlueprintGenerator: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
               <button
                 onClick={() => setActiveTab('soal-hots')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all"
               >
                 <Flame className="w-4 h-4" />
-                Generate Soal HOTS
-                <ArrowRight className="w-4 h-4" />
+                Soal HOTS
               </button>
 
               <button
                 onClick={() => setActiveTab('soal-akm')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all"
               >
                 <Target className="w-4 h-4" />
-                Generate Soal AKM
+                Soal AKM
+              </button>
+
+              <button
+                onClick={() => setActiveTab('soal-hots-akm')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-700 via-indigo-600 to-emerald-600 hover:opacity-95 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
+              >
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                Terpadu HOTS & AKM
                 <ArrowRight className="w-4 h-4" />
               </button>
-            </div>
           </div>
         </div>
       )}

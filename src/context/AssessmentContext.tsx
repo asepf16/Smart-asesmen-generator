@@ -49,7 +49,7 @@ interface AssessmentContextType {
   deselectAllTps: () => void;
   runTPAnalysis: () => Promise<void>;
   generateBlueprint: () => Promise<void>;
-  generateQuestionsByMode: (mode: 'hots' | 'akm' | 'formatif' | 'sumatif' | 'from-blueprint') => Promise<void>;
+  generateQuestionsByMode: (mode: 'hots' | 'akm' | 'hots-akm' | 'formatif' | 'sumatif' | 'from-blueprint') => Promise<void>;
   runQualityValidation: () => Promise<void>;
   updateBlueprintItem: (id: string, updated: Partial<BlueprintItem>) => void;
   deleteBlueprintItem: (id: string) => void;
@@ -400,13 +400,15 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   // Generate Questions
-  const generateQuestionsByMode = async (mode: 'hots' | 'akm' | 'formatif' | 'sumatif' | 'from-blueprint') => {
+  const generateQuestionsByMode = async (mode: 'hots' | 'akm' | 'hots-akm' | 'formatif' | 'sumatif' | 'from-blueprint') => {
     setIsLoading(true);
     const modeLabel =
       mode === 'hots'
         ? 'Soal HOTS Berbasis Stimulus Dunia Nyata'
         : mode === 'akm'
         ? 'Soal AKM Literasi & Numerasi'
+        : mode === 'hots-akm'
+        ? 'Paket Terpadu Kombinasi Soal HOTS & AKM'
         : mode === 'formatif'
         ? 'Asesmen Formatif & Panduan Remedial/Pengayaan'
         : 'Asesmen Sumatif Terstandar';

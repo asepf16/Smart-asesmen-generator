@@ -9,6 +9,7 @@ import { TPAnalysis } from './components/TPAnalysis';
 import { BlueprintGenerator } from './components/BlueprintGenerator';
 import { HOTSGenerator } from './components/HOTSGenerator';
 import { AKMGenerator } from './components/AKMGenerator';
+import { CombinedHotsAkmGenerator } from './components/CombinedHotsAkmGenerator';
 import { FormativeAssessment } from './components/FormativeAssessment';
 import { SummativeAssessment } from './components/SummativeAssessment';
 import { QualityValidator } from './components/QualityValidator';
@@ -36,6 +37,8 @@ const MainContent: React.FC = () => {
         return <HOTSGenerator />;
       case 'soal-akm':
         return <AKMGenerator />;
+      case 'soal-hots-akm':
+        return <CombinedHotsAkmGenerator />;
       case 'formatif':
         return <FormativeAssessment />;
       case 'sumatif':

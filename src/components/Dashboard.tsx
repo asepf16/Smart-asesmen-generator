@@ -106,9 +106,9 @@ export const Dashboard: React.FC = () => {
     },
     {
       step: 5,
-      title: 'Generate Soal HOTS & AKM',
-      desc: 'Konstruksi stimulus mendalam, kunci, dan pembahasan.',
-      tab: 'soal-hots',
+      title: 'Generate Terpadu HOTS & AKM',
+      desc: 'Konstruksi stimulus mendalam, kunci, dan pembahasan terpadu.',
+      tab: 'soal-hots-akm',
       done: questions.length > 0,
     },
     {
@@ -150,6 +150,13 @@ export const Dashboard: React.FC = () => {
             >
               <Grid3X3 className="w-4 h-4 text-cyan-400" />
               Lihat Kisi-Kisi ({blueprint.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('soal-hots-akm')}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-emerald-600 hover:opacity-95 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-md transition-all active:scale-95"
+            >
+              <Sparkles className="w-4 h-4 text-amber-200" />
+              Generator Terpadu HOTS & AKM
             </button>
             <button
               onClick={() => setActiveTab('dokumen')}

@@ -267,6 +267,20 @@ Fokus Khusus: SOAL AKM (Asesmen Kompetensi Minimum) LITERASI & NUMERASI.
   * Numerasi: Bilangan, Aljabar, Geometri & Pengukuran, Data & Ketidakpastian. Konteks Personal, Sosial-Budaya, atau Saintifik.
 - Soal harus berbasis stimulus kaya informasi (bisa teks data, skenario nyata, tabel, infografis simulasi).
 - Bentuk bervariasi: Pilihan Ganda Kompleks (pilih lebih dari satu benar, atau pernyataan Benar/Salah), Menjodohkan, Isian Singkat, Uraian penalaran.`;
+    } else if (mode === 'hots-akm') {
+      promptRole = `
+Fokus Utama: GENERATOR TERPADU SOAL HOTS & AKM (KOMBINASI INTEGRATIF).
+- Mengintegrasikan karakteristik penalaran tingkat tinggi HOTS (C4 Menganalisis, C5 Mengevaluasi, C6 Mencipta) dengan domain asesmen AKM (Literasi Membaca dan Numerasi kontekstual).
+- Setiap butir soal mengukur kemampuan berpikir tingkat tinggi melalui stimulus bermakna dan autentik:
+  * Teks narasi berbasis data/isu nyata, fenomena sains terkini, infografik, atau kasus sosial-budaya.
+  * Pertanyaan menuntut peserta didik melakukan interpretasi mendalam, menghubungkan sebab-akibat, mengevaluasi bukti, atau merumuskan pemecahan masalah kontekstual.
+- Menghasilkan variasi bentuk soal AKM terstandar:
+  * Pilihan Ganda dengan distraktor logis dan homogen
+  * Pilihan Ganda Kompleks (pilih lebih dari satu opsi benar, atau tabel pernyataan Benar-Salah)
+  * Menjodohkan (pernyataan premis vs respon logis)
+  * Isian Singkat berbasis penalaran data stimulus
+  * Uraian / Studi Kasus pemecahan masalah
+- Setiap butir HARUS mencantumkan karakteristik HOTS spesifik (hotsReason) DAN dimensi kompetensi AKM (akmAspect).`;
     } else if (mode === 'formatif') {
       promptRole = `
 Fokus Khusus: ASESMEN FORMATIF (Assessment for Learning & as Learning).
